@@ -1,0 +1,52 @@
+buildscript{
+    repositories{
+        mavenCentral()
+        maven{ url 'https://www.jitpack.io/' }
+    }
+
+    dependencies{
+        classpath "com.github.Anuken.Arc:arc-core:v135.2"
+        classpath "com.github.Anuken.Arc:packer:v135.2"
+    }
+}
+
+plugins {
+    id 'java'
+}
+
+sourceSets.main.java.srcDirs = [ "src/" ]
+
+project.ext.assetsDir = new File("./assets/")
+project.ext.mainClassName = "esopix.Launcher"
+
+repositories {
+    mavenCentral()
+    maven{ url "https://jitpack.io"}
+}
+
+dependencies {
+    implementation "com.github.Anuken.Arc:arc-core:v135.2"
+    implementation "com.github.Anuken.Arc:backend-sdl:v135.2"
+    implementation "com.github.Anuken.Arc:natives-desktop:v135.2"
+}
+
+task pack{
+    doFirst{
+        def folder = new File( "$rootDir/assets/sprites/");
+        if(!folder.exists()) folder.mkdirs();
+
+        arc.packer.TexturePacker.process("$rootDir/assets-raw/sprites/", "$rootDir/assets/sprites/", "sprites.aatls");
+    }
+}
+
+jar {
+    dependsOn pack;
+
+    from files(sourceSets.main.output.classesDirs)
+    from files(sourceSets.main.output.resourcesDir)
+    from {configurations.runtimeClasspath.collect {zipTree(it)}}
+    from files(project.assetsDir);
+
+    manifest.attributes.put('Main-Class', project.mainClassName);
+}
+
